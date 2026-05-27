@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>DebtFlow - Qarzlar Hisoboti</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 30px;
+            padding: 25px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .header h1 {
+            color: white;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: rgba(30, 30, 46, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        /* Tab Menu */
+        .tab-menu {
+            display: flex;
+            background: #1e1e2e;
+            border-radius: 30px;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            color: #888;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        /* Search */
+        .search-box {
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 14px 20px;
+            background: #1e1e2e;
+            border: 1px solid #333;
+            border-radius: 30px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .search-box input:focus {
+            border-color: #667eea;
+        }
+        .search-box input::placeholder {
+            color: #666;
+        }
+        
+        /* Debt Card */
+        .debt-card {
+            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3a 100%);
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+            cursor: pointer;
+            border-left: 5px solid #4CAF50;
+        }
+        .debt-card:hover {
+            transform: translateX(5px);
+            background: linear-gradient(135deg, #2a2a3a 0%, #3a3a4a 100%);
+        }
+        .debt-card.urgent {
+            border-left-color: #ff4444;
+        }
+        .debt-card.today {
+            border-left-color: #ff9800;
+        }
+        .customer-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .amount-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .amount-usd {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .amount-uzs {
+            color: #FFA726;
+            font-weight: bold;
+        }
+        .date-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .izoh {
+            font-size: 11px;
+            color: #666;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #333;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .badge-urgent {
+            background: #ff4444;
+            color: white;
+        }
+        .badge-today {
+            background: #ff9800;
+            color: white;
+        }
+        .badge-normal {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #888;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Empty state */
+        .empty {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #555;
+            font-size: 11px;
+            margin-top: 20px;
+        }
+        
+        /* Refresh button */
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .refresh-btn:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 DebtFlow</h1>
+            <p>Qarz boshqaruvi tizimi</p>
+        </div>
+        
+        <div class="stats-grid" id="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalUsd">0</div>
+                <div class="stat-label">Jami USD</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalUzs">0</div>
+                <div class="stat-label">Jami SO'M</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">Mijozlar</div>
+            </div>
+        </div>
+        
+        <div class="tab-menu">
+            <div class="tab active" data-tab="all">📋 Barcha qarzlar</div>
+            <div class="tab" data-tab="overdue">⚠️ Mudati o'tgan</div>
+            <div class="tab" data-tab="today">🔴 Bugun</div>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Qidiruv (ism yoki izoh)">
+        </div>
+        
+        <button class="refresh-btn" onclick="loadData()">🔄 Yangilash</button>
+        
+        <div id="qarzlarList">
+            <div class="loading">
+                <div class="spinner"></div>
+                Ma'lumotlar yuklanmoqda...
+            </div>
+        </div>
+        
+        <div class="footer">
+            DebtFlow | Qarz boshqaruvi tizimi
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'https://debtflow-cloud.onrender.com/api';
+        let allData = [];
+        let currentTab = 'all';
+        let searchText = '';
+        
+        // Load data
+        async function loadData() {
+            document.getElementById('qarzlarList').innerHTML = '<div class="loading"><div class="spinner"></div>Yuklanmoqda...</div>';
+            
+            try {
+                const [qarzRes, jamiRes] = await Promise.all([
+                    fetch(`${API_URL}/qarzlar`),
+                    fetch(`${API_URL}/jami`)
+                ]);
+                
+                const qarzlar = await qarzRes.json();
+                const jami = await jamiRes.json();
+                allData = qarzlar;
+                
+                updateStats(jami, qarzlar);
+                filterAndDisplay();
+            } catch (e) {
+                document.getElementById('qarzlarList').innerHTML = `
+                    <div class="empty">
+                        ❌ Ulanish xatosi!<br>
+                        Internet ulanishini tekshiring
+                    </div>
+                `;
+            }
+        }
+        
+        function updateStats(jami, qarzlar) {
+            document.getElementById('totalUsd').innerHTML = `$${formatNumber(jami.jami_usd || 0)}`;
+            document.getElementById('totalUzs').innerHTML = formatNumber(jami.jami_uzs || 0);
+            document.getElementById('totalCount').innerHTML = jami.soni || 0;
+        }
+        
+        function formatNumber(num) {
+            return num.toLocaleString('ru-RU');
+        }
+        
+        function getBadge(beriladigan_sana) {
+            const bugun = new Date().toISOString().slice(0,10);
+            if (!beriladigan_sana) return '<span class="badge badge-normal">📅 Sanasiz</span>';
+            if (beriladigan_sana < bugun) return '<span class="badge badge-urgent">⚠️ MUDDATI O\'TGAN</span>';
+            if (beriladigan_sana === bugun) return '<span class="badge badge-today">🔴 BUGUN</span>';
+            return '<span class="badge badge-normal">✅ NORMAL</span>';
+        }
+        
+        function getCardClass(beriladigan_sana) {
+            const bugun = new Date().toISOString().slice(0,10);
+            if (!beriladigan_sana) return '';
+            if (beriladigan_sana < bugun) return 'urgent';
+            if (beriladigan_sana === bugun) return 'today';
+            return '';
+        }
+        
+        function filterAndDisplay() {
+            const bugun = new Date().toISOString().slice(0,10);
+            let filtered = [...allData];
+            
+            // Tab filter
+            if (currentTab === 'overdue') {
+                filtered = filtered.filter(q => q.beriladigan_sana && q.beriladigan_sana < bugun);
+            } else if (currentTab === 'today') {
+                filtered = filtered.filter(q => q.beriladigan_sana === bugun);
+            }
+            
+            // Search filter
+            if (searchText.trim()) {
+                const searchLower = searchText.toLowerCase();
+                filtered = filtered.filter(q => 
+                    q.ism.toLowerCase().includes(searchLower) || 
+                    (q.izoh && q.izoh.toLowerCase().includes(searchLower))
+                );
+            }
+            
+            displayList(filtered);
+        }
+        
+        function displayList(data) {
+            if (data.length === 0) {
+                document.getElementById('qarzlarList').innerHTML = '<div class="empty">📭 Hech qanday ma\'lumot topilmadi</div>';
+                return;
+            }
+            
+            let html = '';
+            for (let q of data) {
+                const badge = getBadge(q.beriladigan_sana);
+                const cardClass = getCardClass(q.beriladigan_sana);
+                const izoh = q.izoh ? q.izoh.substring(0, 60) : '';
+                
+                html += `
+                    <div class="debt-card ${cardClass}">
+                        <div class="customer-name">
+                            ${escapeHtml(q.ism)} ${badge}
+                        </div>
+                        <div class="amount-row">
+                            <span class="amount-usd">💰 USD: ${formatNumber(q.usd_qarz)}</span>
+                            <span class="amount-uzs">💶 SO'M: ${formatNumber(q.uzs_qarz)}</span>
+                        </div>
+                        <div class="date-row">
+                            <span>📅 Olgan: ${q.olingan_sana || '-'}</span>
+                            <span>📅 Beradigan: ${q.beriladigan_sana || '-'}</span>
+                        </div>
+                        ${izoh ? `<div class="izoh">📝 ${escapeHtml(izoh)}${q.izoh.length > 60 ? '...' : ''}</div>` : ''}
+                    </div>
+                `;
+            }
+            document.getElementById('qarzlarList').innerHTML = html;
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        // Event listeners
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                currentTab = this.dataset.tab;
+                filterAndDisplay();
+            });
+        });
+        
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            searchText = e.target.value;
+            filterAndDisplay();
+        });
+        
+        // Load data on page load
+        loadData();
+        
+        // Refresh every 60 seconds
+        setInterval(loadData, 60000);
+    </script>
+</body>
+</html>
